@@ -42,7 +42,6 @@ type Messages struct {
 var (
 	APP_ID       string
 	APP_SECRET   string
-	API_TOKEN    string
 	ALEXA_APP_ID string
 )
 
@@ -53,11 +52,9 @@ func init() {
 	}
 	APP_ID = os.Getenv("APP_ID")
 	APP_SECRET = os.Getenv("APP_SECRET")
-	API_TOKEN = os.Getenv("API_TOKEN")
 	ALEXA_APP_ID = os.Getenv("ALEXA_APP_ID")
 	log.Printf("APPID %s\n", APP_ID)
 	log.Printf("APP_SECRET %s\n", APP_SECRET)
-	log.Printf("Token %s\n", API_TOKEN)
 	log.Printf("ALEXAID: %s\n", ALEXA_APP_ID)
 }
 
@@ -73,7 +70,10 @@ func main() {
 }
 
 func EchoIntentHandler(echoReq *alexa.EchoRequest, echoResp *alexa.EchoResponse) {
-	s := new()
+	log.Printf("req: %+#v\n", echoReq)
+	log.Printf("SESSION: %+#v\n", echoReq.Session.SessionID)
+	log.Printf("TOKEN: %+#v\n", echoReq.Session.User.AccessToken)
+	s := new(echoReq.Session.User.AccessToken)
 	total, unreadMsgFrom := unreadMsg(s)
 	var speechText string
 	if total > 0 {
@@ -84,9 +84,9 @@ func EchoIntentHandler(echoReq *alexa.EchoRequest, echoResp *alexa.EchoResponse)
 	echoResp.OutputSpeech(speechText).Card("Facebook", "Unread Messages.")
 }
 
-func new() *fb.Session {
+func new(token string) *fb.Session {
 	app := fb.New(APP_ID, APP_SECRET)
-	s := app.Session(API_TOKEN)
+	s := app.Session(token)
 	s.Version = "v2.3"
 
 	return s
