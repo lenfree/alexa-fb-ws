@@ -1,0 +1,13 @@
+{
+    "dependencies": {
+        "github.com/huandu/facebook": {
+            "branch": "master"
+        },
+        "github.com/joho/godotenv": {
+            "branch": "master"
+        },
+        "github.com/mikeflynn/go-alexa": {
+            "branch": "master"
+        }
+    }
+}
