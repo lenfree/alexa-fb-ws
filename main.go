@@ -40,9 +40,12 @@ type Messages struct {
 }
 
 var (
-	APP_ID       string
-	APP_SECRET   string
-	ALEXA_APP_ID string
+	// AppID is Facebook App ID
+	AppID string
+	// AppSecret is Facebook App Sexret
+	AppSecret string
+	// AlexaAppID is Echo App ID from Amazon Dashboard
+	AlexaAppID string
 )
 
 func init() {
@@ -50,29 +53,23 @@ func init() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	APP_ID = os.Getenv("APP_ID")
-	APP_SECRET = os.Getenv("APP_SECRET")
-	ALEXA_APP_ID = os.Getenv("ALEXA_APP_ID")
-	log.Printf("APPID %s\n", APP_ID)
-	log.Printf("APP_SECRET %s\n", APP_SECRET)
-	log.Printf("ALEXAID: %s\n", ALEXA_APP_ID)
+	AppID = os.Getenv("APP_ID")
+	AppSecret = os.Getenv("APP_SECRET")
+	AlexaAppID = os.Getenv("ALEXA_APP_ID")
 }
 
 func main() {
 	Applications := map[string]interface{}{
 		"/echo/myfacebook": alexa.EchoApplication{ // Route
-			AppID:    ALEXA_APP_ID, // Echo App ID from Amazon Dashboard
-			OnIntent: EchoIntentHandler,
-			OnLaunch: EchoIntentHandler,
+			AppID:    AlexaAppID,
+			OnIntent: echoIntentHandler,
+			OnLaunch: echoIntentHandler,
 		},
 	}
 	alexa.Run(Applications, "3000")
 }
 
-func EchoIntentHandler(echoReq *alexa.EchoRequest, echoResp *alexa.EchoResponse) {
-	log.Printf("req: %+#v\n", echoReq)
-	log.Printf("SESSION: %+#v\n", echoReq.Session.SessionID)
-	log.Printf("TOKEN: %+#v\n", echoReq.Session.User.AccessToken)
+func echoIntentHandler(echoReq *alexa.EchoRequest, echoResp *alexa.EchoResponse) {
 	s := new(echoReq.Session.User.AccessToken)
 	total, unreadMsgFrom := unreadMsg(s)
 	var speechText string
@@ -85,7 +82,7 @@ func EchoIntentHandler(echoReq *alexa.EchoRequest, echoResp *alexa.EchoResponse)
 }
 
 func new(token string) *fb.Session {
-	app := fb.New(APP_ID, APP_SECRET)
+	app := fb.New(AppID, AppSecret)
 	s := app.Session(token)
 	s.Version = "v2.3"
 
@@ -104,7 +101,6 @@ func unreadMsg(s *fb.Session) (int, []string) {
 	res.Decode(&m)
 	var total int
 	var unReadMsgs []string
-	log.Printf("read: %+#v", unReadMsgs)
 	for _, msg := range m.Inbox.Data {
 		if msg.Unread > 0 {
 			from := msg.To.Data[0].Name
@@ -113,8 +109,5 @@ func unreadMsg(s *fb.Session) (int, []string) {
 
 		}
 	}
-	log.Printf("You have %s unread messages\n", strconv.Itoa(total))
-	log.Println(strings.Join(unReadMsgs, "... "))
-
 	return total, unReadMsgs
 }
